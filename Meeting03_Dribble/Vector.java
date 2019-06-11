@@ -1,4 +1,4 @@
-package Meeting03_Dribble;
+//package Meeting03_Dribble;
 
 public class Vector {
     private double x;
@@ -29,4 +29,4 @@ public class Vector {
     public void setY(double y) {
         this.y = y;
     }
-}
+}
