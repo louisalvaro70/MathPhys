@@ -1,4 +1,4 @@
-/*To do #2*/
+/*To do #3*/
 
 import javax.swing.JFrame;
 import java.awt.Color;
@@ -13,9 +13,9 @@ import java.awt.event.*;
     Collision between parabolically moving object against wall
     TODO:
      0. Review about elastic and inelastic collisions. What happened when you change the coefficient of resistution (COR)?
-     1. Add more balls with different colors, sizes, and velocities
-     2. Create UI to add new balls and delete some instances
-     3. Add COR field to the UI, so user can choose between using different COR than the default or not
+     1. Add more balls with different colors, sizes, and velocities - done
+     2. Create UI to add new balls and delete some instances - done
+     3. Add COR field to the UI, so user can choose between using different COR than the default or not - done
      4. Turn all balls into linearly moving ones (apply Newton's first law here).
      5. Create diagonal walls and modify the calculation to adjust with diagonal walls
      6. Create UI to customize the walls
@@ -27,6 +27,10 @@ public class Dribble extends JFrame {
     private DrawingArea drawingArea;
     private ArrayList<Wall> walls = new ArrayList<>();
     private ArrayList<Ball> balls = new ArrayList<>();
+    private ArrayList<Double> corCount = new ArrayList<>();
+    
+    double cor = 0.7;
+    double newCor;
 
     public Dribble() {
         //configure the main canvas
@@ -69,9 +73,26 @@ public class Dribble extends JFrame {
         velocityX.setBounds(130,150,100,30);
         JTextField velocityY = new JTextField();
         velocityY.setBounds(130,190,100,30);
-        JTextField setColor = new JTextField();
-        setColor.setBounds(130,230,100,30);
+        
+        JLabel corLabel = new JLabel ("Coefficient of Restitution");
+        corLabel.setBounds(350, 30, 150, 30);
+        commandFrame.add(corLabel);
 
+        JLabel info = new JLabel ("If empty, the COR will remain at 0.7");
+        info.setBounds(430, 70, 400, 50);
+        commandFrame.add(info);
+
+        JLabel info2 = new JLabel("the COR will take effect on the next ball");
+        info2.setBounds(403, 90, 430, 50);
+        commandFrame.add(info2);
+
+        /* COR */
+        JTextField corValue = new JTextField();
+        corValue.setBounds(550, 30, 100, 30);
+        commandFrame.add(corValue);
+
+        JTextField setColor = new JTextField();
+        setColor.setBounds(130, 230, 100, 30);
         commandFrame.add(posX);
         commandFrame.add(posY);
         commandFrame.add(setRadius);
@@ -86,14 +107,23 @@ public class Dribble extends JFrame {
         kill.setBounds(300,300,100,20);
         kill.addActionListener(new CustomActionListener());
        
-        button.addActionListener(new ActionListener()
-        {
+        button.addActionListener(new ActionListener(){
             @Override
-            public void actionPerformed(ActionEvent e)
-            {
+            public void actionPerformed(ActionEvent e){
+                System.out.println(corValue.getText().isEmpty());     //check if the COR field is filled or not (returns true if its empty)
+
+                //if not empty
+                if (corValue.getText().isEmpty() == false){
+                    newCor = Double.parseDouble(corValue.getText());  //parse COR text field into double
+                    //if the COR is different than the original (0.7)
+                    if (newCor != 0.7 && newCor >= 0.0 && newCor <= 100.0){
+                        cor = newCor;
+                    }
+                }
+
                 double ballCounter = balls.size();
                 System.out.println(ballCounter);
-                Color color2 = Color.black;  //Default color
+                Color color2 = Color.black;                             //Default color
                 double pX = Double.parseDouble(posX.getText());
                 double pY = Double.parseDouble(posY.getText());
                 double r = Double.parseDouble(setRadius.getText());
@@ -130,7 +160,7 @@ public class Dribble extends JFrame {
 
         commandFrame.add(button);
         commandFrame.add(kill);
-        commandFrame.setSize(600,400);
+        commandFrame.setSize(700,400);
         commandFrame.setLayout(null);
         commandFrame.setVisible(true);
 
@@ -157,21 +187,18 @@ public class Dribble extends JFrame {
     private void createWalls() {
         // vertical wall must be defined in clockwise direction
         // horizontal wall must be defined in counter clockwise direction
-        walls.add(new Wall(1300, 100, 50, 100, Color.black));	// horizontal top
-        walls.add(new Wall(50, 600, 1300, 600, Color.black));  // horizontal bottom
-        walls.add(new Wall(1300, 100, 1300, 600, Color.black));  // vertical right
-        walls.add(new Wall(50, 600, 50, 100, Color.black));  // vertical left
+        walls.add(new Wall(1300, 100, 50, 100, Color.black));	        // horizontal top
+        walls.add(new Wall(50, 600, 1300, 600, Color.black));           // horizontal bottom
+        walls.add(new Wall(1300, 100, 1300, 600, Color.black));         // vertical right
+        walls.add(new Wall(50, 600, 50, 100, Color.black));             // vertical left
     }
 
     //ActionListener to kill balls (corresponds to 'kill' button)
-    class CustomActionListener implements ActionListener
-    {
+    class CustomActionListener implements ActionListener{
         @Override
-        public void actionPerformed(ActionEvent e)
-        {
+        public void actionPerformed(ActionEvent e){
             int counter = balls.size();
-            if (counter != 0)
-            {
+            if (counter != 0){
                 balls.remove(counter-1);
             }
         }
