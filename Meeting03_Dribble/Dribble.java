@@ -1,14 +1,16 @@
-import javax.swing.JFrame;
-import javax.swing.JLabel;
+/*To do #2*/
 
+import javax.swing.JFrame;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.util.ArrayList;
+import java.awt.*;
+import javax.swing.*;
+import java.awt.event.*;
 
 /*
     MatFis pertemuan 3
     Collision between parabolically moving object against wall
-
     TODO:
      0. Review about elastic and inelastic collisions. What happened when you change the coefficient of resistution (COR)?
      1. Add more balls with different colors, sizes, and velocities
@@ -19,77 +21,133 @@ import java.util.ArrayList;
      6. Create UI to customize the walls
  */
 
-public class Dribble {
+
+public class Dribble extends JFrame {
     private JFrame frame;
     private DrawingArea drawingArea;
-
     private ArrayList<Wall> walls = new ArrayList<>();
     private ArrayList<Ball> balls = new ArrayList<>();
 
     public Dribble() {
         //configure the main canvas
         frame = new JFrame("Dribbling Balls");
+
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setBackground(Color.WHITE);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
 
-        JFrame commandLayout = new JFrame ("Add or Kill balls");
-        JLabel posX = new JLabel ("Position X");
-        posX.setBounds(10, 30, 130, 30);
-        JLabel posY = new JLabel ("Position Y");
-        posY.setBounds(10, 60, 130, 100);
-        JLabel setRadius = new JLabel ("Set Radius");
-        setRadius.setBounds(10, 90, 130, 30);
-        JLabel veloX = new JLabel ("Velocity X");
-        veloX.setBounds(10, 40, 130, 30);
-        JLabel veloY = new JLabel ("Velocity Y");
-        veloY.setBounds(10, 120, 130, 30);
-        JLabel addColor = new JLabel ("Color");
-        addColor.setBounds(10, 150, 130, 30);
+        JFrame commandFrame = new JFrame("Ball creator & killer");
+        JLabel positionXLabel = new JLabel("Position (X-axis)");
+        positionXLabel.setBounds(10,30,130,30);
+        JLabel positionYLabel = new JLabel("Position (Y-axis)");
+        positionYLabel.setBounds(10,70,130,30);
+        JLabel setRadiusLabel = new JLabel("Radius");
+        setRadiusLabel.setBounds(10,110,130,30);
+        JLabel velocityXLabel = new JLabel("Velocity (X-axis)");
+        velocityXLabel.setBounds(10,150,130,30);
+        JLabel velocityYLabel = new JLabel("Velocity (Y-axis)");
+        velocityYLabel.setBounds(10,190,130,30);
+        JLabel setColorLabel = new JLabel("Color");
+        setColorLabel.setBounds(10,230,130,30);
 
-        commandLayout.add(posX);
-        commandLayout.add(posY);
-        commandLayout.add(setRadius);
-        commandLayout.add(veloX);
-        commandLayout.add(veloY);
-        commandLayout.add(addColor);
+        commandFrame.add(positionXLabel);
+        commandFrame.add(positionYLabel);
+        commandFrame.add(setRadiusLabel);
+        commandFrame.add(velocityXLabel);
+        commandFrame.add(velocityYLabel);
+        commandFrame.add(setColorLabel);
+        commandFrame.add(setColorLabel);
 
-        JButton commandButton = new JButton ("Create New Ball");
-        commandButton.setBounds(300, 300, 100, 20);
+        JTextField posX = new JTextField();
+        posX.setBounds(130,30,100,30);
+        JTextField posY = new JTextField();
+        posY.setBounds(130,70,100,30);
+        JTextField setRadius = new JTextField();
+        setRadius.setBounds(130,110,100,30);
+        JTextField velocityX = new JTextField();
+        velocityX.setBounds(130,150,100,30);
+        JTextField velocityY = new JTextField();
+        velocityY.setBounds(130,190,100,30);
+        JTextField setColor = new JTextField();
+        setColor.setBounds(130,230,100,30);
 
-        b.addActionListener(new ActionListener() {
-            public void actionPerformed (ActionEvent event) {
-                Color color2 = Color.BLACK;
+        commandFrame.add(posX);
+        commandFrame.add(posY);
+        commandFrame.add(setRadius);
+        commandFrame.add(velocityX);
+        commandFrame.add(velocityY);
+        commandFrame.add(setColor);        
+        
+        JButton button = new JButton("Create new ball");                //create ball
+        button.setBounds(100,300,100,20);                               //position x, position y, width, height
+
+        JButton kill = new JButton("Kill a ball");                      //kill ball
+        kill.setBounds(300,300,100,20);
+        kill.addActionListener(new CustomActionListener());
+       
+        button.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                double ballCounter = balls.size();
+                System.out.println(ballCounter);
+                Color color2 = Color.black;  //Default color
                 double pX = Double.parseDouble(posX.getText());
                 double pY = Double.parseDouble(posY.getText());
-                double r = Double.parseDouble(radius.getText());
+                double r = Double.parseDouble(setRadius.getText());
                 double vX = Double.parseDouble(velocityX.getText());
                 double vY = Double.parseDouble(velocityY.getText());
-                String col = colorSet.getText();
-                switch (col.toLowerCase()) {
+                String col = setColor.getText();
+                switch(col.toLowerCase())
+                {
                     case "black":
-                        color2 = Color.BLACK;
+                        color2 = Color.black;
                         break;
                     case "blue":
-                        color2 = Color.BLUE;
+                        color2 = Color.blue;
                         break;
                     case "red":
-                        color2 = Color.RED;
+                        color2 = Color.red;
+                        break;
+                    case "green":
+                        color2 = Color.green;
+                        break;
+                    case "yellow":
+                        color2 = Color.yellow;
+                        break;
+                    case "orange":
+                        color2 = Color.orange;
+                        break;
+                    case "gray":
+                        color2 = Color.gray;
                         break;
                 }
+                balls.add(new Ball(pX,pY,r,vX,vY,color2));
             }
-        }
+        });
+
+        commandFrame.add(button);
+        commandFrame.add(kill);
+        commandFrame.setSize(600,400);
+        commandFrame.setLayout(null);
+        commandFrame.setVisible(true);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new FlowLayout());
 
         // create the walls
         createWalls();
 
         // create the ball
-        balls.add(new Ball(300, 200, 50, 10, 10, Color.blue));
-        balls.add(new Ball(300, 100, 20, 3, -3, Color.green));
-        balls.add(new Ball(300, 500, 35, 15, 18, Color.yellow));
-        balls.add(new Ball(300, 355, 24, 6, 10, Color.red));
-		balls.add(new Ball(300, 455, 20, 3, 15, Color.cyan));
+        balls.add(new Ball(300, 200, 50, 10, 10, Color.green));
+        balls.add(new Ball(300, 100, 20, 3, -3, Color.green));  //Lizard ball
+        //New balls
+        balls.add(new Ball(200, 200, 10, 3, -3, Color.yellow));  
+        balls.add(new Ball(300, 200, 50, 5, 5, Color.red));     
+        balls.add(new Ball(200, 200, 50, 0, 3, Color.orange));
+        balls.add(new Ball(400, 100, 60, 2, -2, Color.green));
 
         drawingArea = new DrawingArea(frame.getWidth(), frame.getHeight(), balls, walls);
         frame.add(drawingArea);
@@ -99,14 +157,25 @@ public class Dribble {
     private void createWalls() {
         // vertical wall must be defined in clockwise direction
         // horizontal wall must be defined in counter clockwise direction
-
         walls.add(new Wall(1300, 100, 50, 100, Color.black));	// horizontal top
         walls.add(new Wall(50, 600, 1300, 600, Color.black));  // horizontal bottom
         walls.add(new Wall(1300, 100, 1300, 600, Color.black));  // vertical right
         walls.add(new Wall(50, 600, 50, 100, Color.black));  // vertical left
-        walls.add(new Wall(1300, 100, 95, 595, Color.BLACK));
     }
 
+    //ActionListener to kill balls (corresponds to 'kill' button)
+    class CustomActionListener implements ActionListener
+    {
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            int counter = balls.size();
+            if (counter != 0)
+            {
+                balls.remove(counter-1);
+            }
+        }
+    }
 
     public static void main(String[] args) {
         EventQueue.invokeLater(Dribble::new);
