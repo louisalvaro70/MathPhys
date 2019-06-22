@@ -1,10 +1,9 @@
 /*
 	Matfis pertemuan 5
 	Circular motion and pendulum
-
 	TODO:
-	 1. Separate drawing area from the frame
-	 2. Add more pendulums
+	 1. Separate drawing area from the frame (done)
+	 2. Add more pendulums (done)
 	 3. Take care of the collision among pendulum balls. Remember, the ball moves before detecting any collisions
 	 4. Minigame: hitting target with pendulum(s)
  */
@@ -19,9 +18,10 @@ import java.util.ArrayList;
 import javax.swing.JFrame;
 import java.awt.event.MouseEvent;
 
-public class Pendulum extends JFrame implements Runnable {
-		//Thread where animation is run
-		private Thread animator;
+public class Pendulum extends JFrame 
+{
+		private DrawingArea drawingArea;	//Declare drawing area
+		private JFrame frame;
 		
 		//the ball to be drawn
 		ArrayList<Ball> balls = new ArrayList<>();
@@ -29,21 +29,20 @@ public class Pendulum extends JFrame implements Runnable {
 		// the line to be drawn
 		ArrayList<Rope> ropes = new ArrayList<>();
 		
-		//Image where functions are drawn, which then drawn to the canvas
 		BufferedImage dbImage;	
 		
 		private int canvasHeight;
 		private int canvasStartY;
 		
-		//Variables
 		private Ball selectedBall;
 		private Rope selectedRope;
 		
+				
 		private boolean isPressed;
 		private double mousePressedX;
 		private double mousePressedY;
 
-		private int maxBalls = 10;
+		private int maxBalls = 2;	
 		private double ropeLength = 400;
 		private double ballSize = 40;
 		private double firstRopeX = 600;
@@ -51,23 +50,21 @@ public class Pendulum extends JFrame implements Runnable {
 		
 		public static final double GRAVITY = 0.098;
 		
-		public Pendulum()
-		{
-			//configure the main canvas
+		public Pendulum(){
 			setExtendedState(MAXIMIZED_BOTH);
 			setBackground(Color.WHITE);
 			setDefaultCloseOperation(EXIT_ON_CLOSE);
 			setVisible(true);
 			canvasHeight = getHeight() - getInsets().top;
 			canvasStartY = getInsets().top;
-					
-			//create the image
-			dbImage = (BufferedImage)createImage(getWidth(), canvasHeight);
+				
+			drawingArea = new DrawingArea(getWidth(), canvasHeight, balls, ropes);
+			this.add(drawingArea);
+			drawingArea.start();
 			
-			//create the pendulum
 			for(int i=0; i<maxBalls; i++)
 				addPendulum();
-		
+
 			addMouseListener(new MouseAdapter() {
 				@Override
 				public void mousePressed(MouseEvent e) {
@@ -78,16 +75,14 @@ public class Pendulum extends JFrame implements Runnable {
 
 					//get the ball at that coordinate
 					for(Ball b: balls)
-						if(b.isInside(mousePressedX, mousePressedY))
-						{
+						if(b.isInside(mousePressedX, mousePressedY)){
 							selectedBall = b;
 							selectedRope = b.getRope();
 						}
 
 					//get which ball is pressed
-					if(selectedBall != null)
-					{
-						isPressed = true;
+					if(selectedBall != null){
+						drawingArea.setPress(true);		//Set mouse press condition as TRUE on DrawingArea
 						selectedBall.setVx(0);
 						selectedBall.setVy(0);
 					}
@@ -97,7 +92,7 @@ public class Pendulum extends JFrame implements Runnable {
 				public void mouseReleased(MouseEvent e) {
 					super.mouseReleased(e);
 					//indicating that the mouse is not pressed anymore
-					isPressed = false;
+					drawingArea.setPress(false);	//Set mouse press condition as FALSE on DrawingArea
 					selectedBall = null;
 					selectedRope = null;
 				}
@@ -111,29 +106,22 @@ public class Pendulum extends JFrame implements Runnable {
 					int mouseMovedX = e.getX();
 					int mouseMovedY = e.getY();
 
-					if(selectedBall != null)
-					{
+					if(selectedBall != null){
 						Vector v = new Vector(mouseMovedX - selectedRope.getX1(), mouseMovedY - selectedRope.getY1());
 						v = v.unitVector();
 						v.multiply(selectedRope.getLength());
 
-						if((selectedRope.getY1() + v.getY() - selectedBall.getRadius()) > 0)
-						{
+						if((selectedRope.getY1() + v.getY() - selectedBall.getRadius()) > 0){
 							selectedBall.move(selectedRope.getX1() + v.getX(), selectedRope.getY1() + v.getY());
 						}
 					}
 				}
 			});
 
-			//start the thread to draw functions to canvas
-			animator = new Thread(this);
-			animator.start();
 		}
 		
-		public void addPendulum()
-		{
-			if(balls.size() < maxBalls)
-			{				
+		public void addPendulum(){
+			if(balls.size() < maxBalls){				
 				//create the ropes
 				ropes.add(new Rope(firstRopeX + 2*balls.size()*(ballSize + incX), 0,
 						firstRopeX + 2*balls.size()*(ballSize + incX), ropeLength, Color.blue));
@@ -143,76 +131,8 @@ public class Pendulum extends JFrame implements Runnable {
 				ropes.get(ropes.size()-1).attach(balls.get(balls.size()-1));				
 			}
 		}
-		
-		public void run() {
-			while(true)
-			{
-				update();
-				render();
-				printScreen();
-			}		
-		}
-		
-		public void update()
-		{
-			//update the rope if no mouse is pressed
-			if(!isPressed)
-			{
-				for(Ball b: balls)
-				{					
-					b.move();
-				}
-			}
-		}
-		
-		public void render()
-		{
-			if(dbImage != null)
-			{				
-				//get graphics of the image where coordinate and function will be drawn
-				Graphics g = dbImage.getGraphics();
-			
-				//clear screen
-				g.setColor(new Color(200,200,150));
-				g.fillRect(0, 0, getWidth(), canvasHeight);
-				
-				//draw the balls
-				for(Ball b: balls)
-				{
-					if(b != null)
-   					   b.draw(g);
-				}
-				
-				//draw the ropes				
-				for(Rope r: ropes)
-				{				
-					r.draw(g);
-				}							
-			}
-		}
-		
-		public void printScreen()
-		{
-			try
-			{
-				Graphics g = getGraphics();
-				if(dbImage != null && g != null)
-				{
-					g.drawImage(dbImage, 0, canvasStartY, null);
-				}
-				
-				// Sync the display on some systems.
-				// (on Linux, this fixes event queue problems)
-				Toolkit.getDefaultToolkit().sync();
-				g.dispose();
-			} catch(Exception ex)
-			{
-				System.out.println("Graphics error: " + ex);  
-			}		
-		}
 
-		public static void main(String[] args)
-		{
+		public static void main(String[] args){
 			EventQueue.invokeLater(Pendulum::new);
 		}
 }
