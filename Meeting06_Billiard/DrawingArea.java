@@ -4,13 +4,16 @@ import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
-import java.nio.Buffer;
 import java.util.ArrayList;
 
 public class DrawingArea extends JPanel{
     private double time = 0;
     private final static double TIME_INCREASE = 0.1;
     private boolean press = false;
+    private Line2D guideline;
+    private Vector destination;
+    private Ball hitter;
+
     private int height;
     private int width;
     private ArrayList<Ball> balls;
@@ -18,14 +21,16 @@ public class DrawingArea extends JPanel{
     private Thread animator;
     private BufferedImage drawingArea;
 
-    public DrawingArea(int width, int height, ArrayList<Ball> balls, ArrayList<Wall> walls){
+    public DrawingArea(int width, int height, ArrayList<Ball> balls, ArrayList<Wall> walls, int hitterIndex, Vector destination){
         super(null);
         this.height = height;
         this.width = width;
         setBounds(0, 0, width, height);
         this.balls = balls;
         this.walls = walls;
-
+        hitter = balls.get(hitterIndex);
+        this.destination = destination;
+        guideline = new Line2D.Double(hitter.getPositionX(), hitter.getPositionY(), destination.getX(), destination.getY());
         animator = new Thread(this::eventLoop);
     }
 
@@ -33,9 +38,13 @@ public class DrawingArea extends JPanel{
         animator.start();
     }
 
-    public void isPressed(boolean press){
+    public boolean isPressed(){
+        return press;
+    }
+
+    public void setPress(boolean press){
         this.press = press;
-        if (!press){
+        if(!press){
             time = 0;
         }
     }
@@ -65,7 +74,10 @@ public class DrawingArea extends JPanel{
         }
         for (Ball b : balls){
             b.move();
+            b.ballCollide(balls);
+            b.wallCollide(walls);
         }
+        guideline.setLine(hitter.getPositionX(), hitter.getPositionY(), destination.getX(), destination.getY());
     }
 
     private void render(){
@@ -83,6 +95,11 @@ public class DrawingArea extends JPanel{
             
             for (Wall w : walls){
                 w.draw(g);
+            }
+
+            if (guideline != null){
+                g.setColor(Color.RED);
+                g.drawLine((int) guideline.getX1(), (int) guideline.getY1(), (int) guideline.getX2(), (int) guide.getY2());
             }
         }
     }
