@@ -32,7 +32,7 @@ public class Wall{
         normVectorX = (-1)*(wallVector.getY()/wallVector.getX());
   
         //System.out.println(normVector.getX() + " - " + normVector.getY());
-        double normVectorLength = Math.sqrt(normVectorX*normVectorX + normVectorY);
+        double normVectorLength = Math.sqrt(normVectorX*normVectorX + normVectorY*normVectorY);
         normVector.setX(normVectorX/normVectorLength);
         normVector.setY(normVectorY/normVectorLength);
         return normVector;

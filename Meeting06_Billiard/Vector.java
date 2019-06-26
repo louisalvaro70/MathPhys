@@ -12,11 +12,11 @@ public class Vector{
         this.y = y;
     }
     
-    public double x(){
+    public double getX(){
         return x;
     }
     
-    public double y(){
+    public double getY(){
         return y;
     }
     
